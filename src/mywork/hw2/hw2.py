@@ -79,7 +79,7 @@ def hw2():
         print("Here's a counter-example to C5: ", s.model())
     
     # 6. ¬(X ∧ ¬X)
-    C6 = Implies(Not(Not(X)), X)
+    C6 = Not(And(X, Not(X)))
     # X and not X cannot be true.
     s.reset()
     s.add(Not(C6))
