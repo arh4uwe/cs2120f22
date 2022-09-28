@@ -80,6 +80,8 @@ also true), then in that context, we can construct a proof of
 X ∧ Y, thus concluding that it, too, must be true.  
 -/
 
+/- *** AND *** -/
+
 -- ∧ 
 def and_introduction  : Prop  := ∀ (X Y : Prop), X → Y → (X ∧ Y)
 def and_elim_left     : Prop  := ∀ (X Y : Prop), X ∧ Y → X  
@@ -114,6 +116,9 @@ or_intro_left definition that comes next, for example, means
 def or_intro_left : Prop := ∀ (X Y : Prop), X → X ∨ Y. 
 -/
 
+
+/- *** OR *** -/
+
 -- ∨ 
 def or_intro_left : Prop    := X → X ∨ Y
 def or_intro_right : Prop   := Y → X ∨ Y
@@ -144,6 +149,9 @@ Suppose it's raining OR the sprinkler is running, and that in
 either case the grass is wet. Is the grass wet? How would you
 prove it?
 -/
+
+
+/- *** IFF *** -/
 
 -- ↔ 
 def iff_intro         := (X → Y) → (Y → X) → X ↔ Y
@@ -179,6 +187,8 @@ The elimination rules are also easy. Given X ↔ Y, you can
 immediately deduce X → Y and Y → X.
 -/
 
+/- *** FORALL and ARROW *** -/
+
 -- → and ∀ 
 def arrow_all_equiv   := (∀ (x : X), Y) ↔ (X → Y)
 
@@ -200,6 +210,8 @@ propositions are not only equivalent but equal.
 
 #check X → Y          -- Lean confirms this is a proposition
 #check ∀ (x : X), Y   -- Lean understands this to say X → Y!
+
+
 
 /- OPTIONAL
 As an aside, here's a proof that these propositions are 
@@ -261,13 +273,6 @@ if b is some particular ball, then b is blue.
 -/
 
 /-
-The inference rules for and, or, implies, forall, and
-biimplication are "not to bad." The rules for negation
-and exists are a little trickier: not terrible but they
-do require slightly deeper understanding. 
--/
-
-/-
 As an example, consider a predicate, (isBlue _), where you can fill
 in the blank/argument with any Ball-type object. If b is a specific
 Ball-type object, then (isBlue b) is a proposition, representing the
@@ -297,9 +302,65 @@ variable all_balls_blue : (∀ (x : Ball), isBlue x)   -- proof of it
 #check all_balls_blue b2                    -- proof b2 is blue
 
 /-
+Here's an English-language version.
+
+Suppose b1 and b2 are objects of some type, Ball, and that isBlue 
+is one-place predicate taking any Ball, b, as an argument, and that
+reduces to a proposition, denoted (isBlue b), that we understand as
+asserting that the particular ball, b, is blue. Next (295), we take
+all_balls_blue as a proof that all balls are blue. Finally (296 and
+297), we see that we can can use this proof/truth by *applying* it
+to any particular ball, b, to obtain a proof/truth that b is blue. 
+
+For any type S, given any X: (∀ s : S), T and any s : S, the ∀ 
+and → elimination rule(s) say that you can derive a value/proof of 
+type T; moreover this operation is basically done by *applying* ,
+viewed as a function from parameter value to proposition, to the 
+actual parameter, s (in Lean denoted as (X s)), to obtain a value
+(proof) of (type) T. Modus ponens is like function application. In
+constructive logic, a proof of the ∀ proposition *is* a function.
+Here you begin to see how profound is that proofs in constructive 
+logic tell you not only that a proposition is true but why. Here a
+proof of X → Y or of ∀ (x : X), Y, is a program that when given any
+value/proof of X as an argument returns a value/proof of Y. If you 
+can produce a function that turns any proof of X into a proof of Y,
+then you've shown that whenever X is true, so is Y; and that's just
+what X → Y is meant to say (similarly for ∀ (x : X), Y). 
+-/
+
+/-
 Walk-away message: Applying a proof/truth of a universal
 generalization to a specific object yields a proof of the
-generalization *specialized* to that particular object.
+generalization *specialized* to that particular object. That
+is in the higher-order predicate logic of Lean. 
+-/
+
+/-
+Finally, let's compare our elimination rule, in the higher-order
+predicate logic of Lean, with its first-order logic counterpart.
+
+There are two big differences, first, in first-order logic, you 
+have to present the rule outside of the logic: you can't write 
+rules like this, ∀ (X Y : Prop), X → Y → (X ∧ Y), in first-order
+logic because in first order logic you can't quantify over types,
+propositions, predicates, functions. Here we do just this with the
+"∀ (X Y : Prop)." By contrast, in the higher-order logic of Lean,
+we can represent the rules of first-order logic with no problem: 
+e.g., "∀ (X Y : Prop), X → Y → (X ∧ Y)."
+
+Second, as we've discussed, using Lean's higher-order logic, you
+can think of a proof of "∀ (X Y : Prop), X → Y → (X ∧ Y)" as a 
+function. Each variable bound by a ∀ and each implication premise
+is an argument, with the type of the return value at the end of 
+the line. So, here, a proof of this proposition can be taken as 
+a function that takes two propositions, X and Y as arguments, then
+a proof (value) of (type) X, then a proof (value) of type Y, and
+that finally returns a proof (value) X ∧ Y. Whereas the proof of
+∀ (X Y : Prop), X → Y → (X ∧ Y) is a function the returned proof
+of (X ∧ Y) is a pair-like data structure. Proofs in constructive
+logic are *computational*, and you can even compute with them, as
+you do when you *apply* a proof of a certain kind to an argument
+to obtain a resulting proof/value.
 -/
 
 /-
@@ -324,29 +385,322 @@ variable Person : Type
 variable Plato : Person
 variable isMortal : Person → Prop
 variable everyoneIsMortal : ∀ (p : Person), isMortal p
-#check (everyoneIsMortal Plato)
+#check (everyoneIsMortal Plato)   -- ∀ elimination!
 
 
-/- Coming soon -/
+/- *** TRUE AND FALSE *** -/
+
+/-
+In propositional logic, the literal expressions, true
+and false, are part of the syntax of the logic, with
+obvious interpretations. The "true" expression always
+evaluates to Boolean true, and the "false" expression
+to Boolean false. We could thus write expressions such
+as (X ∨ false) and (X ∧ true).
+
+In predicate logic we have the same concepts exactly. 
+In first order predicate logic, true is a proposition
+that is invariably judged to be true, and false is a
+proposition that is invariable false. 
+
+In the higher-order predicate logic defined in Lean,
+true and false are also propositions, as we can see
+with the following checks and an example.
+-/
+
+#check true
+#check false
+#check ∀ (P : Prop), P ∨ true
+
+/-
+As with all of the basic connectives and quantifiers,
+the *meanings* of these terms are established by their
+inference rules. We address the rules for each one now.
+-/
+
+/-
+We want "true" to be a proposition that is always true.
+In constructive logic, that means there's always a proof
+of it. Indeed, in Lean, that proof is called true.intro. 
+The way to prove that "true" is true is by giving this
+proof as evidence.
+-/
+
+theorem true_is_true : true := true.intro
+
+/-
+In other words, there's always a trivial proof lying
+around to prove that the proposition, "true," is true.
+Let's decode that theorem:
+- "theorem" says we're about to prove a proposition
+- the proposition in this case is "true"
+- and the proof is true.intro
+The Lean prover accepts this proof as correct. It is.
+Simply put, true.intro is the introduction rule for the
+proposition, "true," in Lean.
+-/
+
+/-
+What about the elimination rule for true? Well, having
+a proof of true gives you essentially zero information,
+so there's nothing useful you can really do with a proof
+of true. Thus there is no elimination rule for true. 
+-/
+
+/-
+Next, we want the inference rules for the proposition,
+"false" to capture two ideas. First, the proposition
+"false" must always be logically false. In first-order
+logic, that's all there is to it. In the constructive
+logic of Lean, the proposition "false," is logically
+false *because it is defined to be a proposition that
+has no proofs.* Because it has no proofs, there is no
+introduction rule for "false." If there were, then we
+would be able to use it to construct a proof of false,
+which can't exist." There is thus *no possible way* to
+complete the following definition.
+-/
+
+theorem a_proof_of_false : false := _   -- no can do!
+
+/-
+Now we get to the most interesting and important rule:
+false elimination, or the elimination rule for "false."
+
+As you recall, in propositional logic, false → X is
+always true, no matter whether X is true or false.
+So, false → false is true, and false → true is true.
+
+Now suppose P is any proposition in first-order logic.
+The elimination rule for "false" is false ⊢ P. In
+other words, if you assume or have somehow proven 
+false (which is possible from a false premise), then 
+you can deduce that anything at all is true: including
+P, no matter what proposition it is, even if it's a
+false proposition. As they say, "from false anything
+follows," or, in Latin, "ex falso quodlibet."
+
+This principle makes good sense, because if false is
+true (the premise), then even if a proposition, P, is 
+false, false is true, so P is true (too)!
+-/
+
+/-
+A little practice. Which of the following propositions
+in predicate logic is true?
+-/
+
+def p1 : Prop := false → false
+def p2 : Prop := false → true
+def p3 : Prop := true → true
+def p4 : Prop := true → false
+def p5 : Prop := false → 2 = 3
+def p6 : Prop := false → 0 = 0
+def p7 : Prop := ∀ (P : Prop), true → P
+def p8 : Prop := ∀ (P : Prop), false → P 
+
+theorem p8_is_true : p8 := 
+begin
+unfold p8,
+assume P,
+assume f,
+apply false.elim f,
+end 
+
+/-
+For each proposition, state whether it's true or false
+then give a proof of it (in English). Here are some formal
+proofs to help.
+-/
+
+-- def p1 : Prop := false → false
+theorem x : p1 := 
+begin
+  unfold p1,
+  assume f : false,
+  exact f,
+end
+
+-- false → true
+example : p2 := 
+begin
+  unfold p2,
+  assume f,           -- move premise into context
+  --exact true.intro,   -- don't have to use assumption
+  -- apply false.elim f,
+  contradiction,
+end
+
+example : p3 := 
+begin
+unfold p3,
+assume t,
+exact t,    -- exact true.intro also works
+end
+
+example : p4 := 
+begin
+unfold p4,
+assume t,
+end
+
+example : p5 := 
+begin
+unfold p5,
+assume f,
+cases f,
+end
+
+example : p6 := 
+begin
+unfold p6,
+assume f,
+cases f,
+-- exact rfl,
+end
+/-
+What? The cases tactic applies the elimination rule to
+an assumed or derived proof of false. For each of the 
+ways that the proof, f, could have been constructed,
+you have a case to consider; but there are no ways a
+proof of false can be constructed so you have no cases
+to consider, so the proof is done! This is another way
+to understand how/why false elimination works in the
+constructive logic of Lean and other similar tools. 
+-/
+
+example : p7 := 
+begin
+unfold p7,
+intro P,
+assume t,
+-- stuck
+end
+
+example : p8 := 
+begin
+unfold p8,
+assume P f,
+cases f,
+end
+
+/- *** NOT *** -/
 
 
 -- ¬ 
-def not_ (X : Prop) := X → false  -- this is how "not" ¬ is defined in CL
-def excluded_middle   := X ∨ ¬X   -- not an axiom in constructive logic
-def neg_elim          := ¬¬X → X  -- depends on adoption of em as an axiom
+/-
+With an understanding of "false" and its elimination rule, we
+can now talk about the inference rules for negation. 
+-/
 
 /-
-And for this explanation, we need to nail down the concept of a 
-predicate in predicate logic. As we've exaplained before, a predicate 
-is a proposition with one or more parameters. Think of parameters as 
-blanks in the reading of a proposition that you can fill in with any 
-value of the type of value permitted in that slot. When you fill in 
-all the blanks (by giving actual values for the formal parameters),
-you get a proposition: a specific statement about specific objects 
-with no remaining blanks to be filled in. A predicate gives rise to 
-a family of propositions. Once all the parameters in a predicate are
-bound to actual values, you've no longer got a predicate, but just a
-proposition. 
+Recall that if P is any proposition, then (not P), generally 
+written as ¬P, is also a proposition. when is ¬P true? It's
+true in first-order logic if P is false. It's also true in
+constructive logic when P is false, which is to say, *when 
+there is no proof of P*. 
+
+Now here's the slightly tricky way that we show that there can
+be no proof of P. We show (P → false). What this proposition
+says is that "If there is a proof of P, then from it we can
+derive a proof of false." But a proof of false doesn't exist,
+so if we prove (P → false) is true then there must be no proof
+of P. In other words, to prove there is no proof of P, we prove
+P → false! And that leads to our definition of ¬P. What it means
+is *exactly* P → false. 
+-/
+def not_ (X : Prop) := X → false  -- the definition of "not" (¬)
+
+/-
+Examples
+-/
+
+example : 0 = 1 → false :=
+begin
+assume h,   -- suppose 0 = 1
+cases h,    -- that can't happen, no cases, we've proved ¬(0=1)
+end 
+
+example : ¬(0 = 1) :=
+begin 
+assume h,
+cases h,
+/-
+Remember!!!  0 ≠ 1 means ¬(0 = 1) means 0 = 1 → false. You 
+must remember that when you want to prove ¬P, that means you
+need to prove P → false: that a proof of P is a contradiction.  
+to remember this, because it tells you how to prove it. To
+show it, assume the premise, 0 = 1, then show that in this
+context, there is a contradiction ---given our intuitive
+grasp of equality and the natural numbers. 
+
+If you can derive a contradiction, that is tantamount to a 
+proof of false, and from a proof of false, f, the truth of
+any other proposition follows. Put another way, in terms of
+Lean's formal logic, the term, (false.elim f), where f is a
+proof of false, serves is a formal proof of any proposition.
+-/
+end
+
+/- PROOF BY NEGATION 
+
+What we have now seen is a crucial "proof strategy" often 
+called proof by negation. To show ¬P, that the statement, 
+P is false, is true, prove P → false. First assume that 
+P is true (you have a proof of it) and show that in this
+context, you can derive a proof of false. You will often
+do this by producing a contradiction, which is proofs of
+both X and ¬X for some proposition, from which, as we will
+see shortly, you can derive a proof of false by applying
+the rule of arrow elimination (function application!).  
+-/
+
+/-
+HW #3 Exercise: state and prove the rule (the "theorem") 
+of "no contradiction:" first in English and then in the
+predicate logic of Lean. Or if you prefer, work it out 
+in Lean and the write it in English. The formal statement
+of the proposition is in the partially completed theorem 
+below. 
+-/
+
+theorem no_contra : ¬(X ∧ ¬X) :=
+begin
+end
+
+/-
+Hint: The proof uses arrow introduction (you have to prove an
+implication), "and" elimination (you need separate proofs of X
+and ¬X; try using cases in Lean), and arrow elimination (you
+need to *use* these proofs, one of which, remember, is a proof
+of an implication; so what can you do with that?). 
+-/
+
+
+/- COMING SOON -/
+
+
+def excluded_middle   := X ∨ ¬X   -- not an axiom in CL
+def neg_elim          := ¬¬X → X  -- depends on axiom of e.m.
+
+
+
+
+/- Under Construction -/
+
+/-
+And for this explanation, we need to be precise about what it means
+to be a predicate in predicate logic. As we've exaplained before, 
+a predicate is a proposition with one or more parameters. Think of
+parameters as blanks in the reading of a proposition that you can
+fill in with any value of the right type for that slot. When you 
+fill in all the blanks, which you do by by applying the predicate
+to actual parameter values, you get back a proposition: a specific
+statement about specific objects with no remaining parameters to
+be filled in. A predicate thus gives rise to a whole *family* of 
+propositions, one for each possible combination of argument values. 
+Once all the parameters in a predicate are fixed to actual values,
+you've no longer got a predicate but just a proposition. 
 -/
 
 
